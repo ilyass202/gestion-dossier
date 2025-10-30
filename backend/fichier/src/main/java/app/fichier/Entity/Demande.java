@@ -34,14 +34,15 @@ public class Demande extends BaseAuditing{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne(fetch = FetchType.LAZY
+    private String cin;
+    @ManyToOne(fetch = FetchType.EAGER
     )
     @JoinColumn(name="utilisateur")
     private Utilisateur utilisateur;
     @OneToMany(mappedBy = "demande", cascade = CascadeType.ALL)
     private List<Document> documents = new ArrayList<>();
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="demande_commune")
     private Commune commune;
 
