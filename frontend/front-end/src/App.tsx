@@ -1,35 +1,95 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { AppSelector } from './components/AppSelector';
+import { Login } from './components/Login';
+import { Layout } from './components/Layout';
+import { Dashboard } from './components/Dashboard';
+import { Dossiers } from './components/Dossiers';
+import { DossierDetail } from './components/DossierDetail';
+import { Utilisateurs } from './components/Utilisateurs';
+import { Parametres } from './components/Parametres';
+import { Toaster } from './components/ui/sonner';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [selectedApp, setSelectedApp] = useState<'admin' | 'mobile' | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentPage, setCurrentPage] = useState('dashboard');
+  const [selectedDossier, setSelectedDossier] = useState<string | null>(null);
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  const handleSelectApp = (app: 'admin' | 'mobile') => {
+    setSelectedApp(app);
+    if (app === 'mobile') {
+      setIsLoggedIn(true); // Auto-login for mobile demo
+      setCurrentPage('home');
+    }
+  };
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentPage(selectedApp === 'admin' ? 'dashboard' : 'home');
+    setSelectedDossier(null);
+    setSelectedApp(null);
+  };
+
+  const handleNavigate = (page: string) => {
+    setCurrentPage(page);
+    setSelectedDossier(null);
+  };
+
+  const handleViewDossierDetail = (dossierId: string) => {
+    setSelectedDossier(dossierId);
+  };
+
+  const handleBackToDossiers = () => {
+    setSelectedDossier(null);
+  };
+
+  // App selector screen
+  if (!selectedApp) {
+    return <AppSelector onSelectApp={handleSelectApp} />;
+  }
+
+  // Admin platform
+  if (selectedApp === 'admin') {
+    if (!isLoggedIn) {
+      return <Login onLogin={handleLogin} />;
+    }
+
+    const renderAdminPage = () => {
+      if (selectedDossier) {
+        return <DossierDetail dossierId={selectedDossier} onBack={handleBackToDossiers} />;
+      }
+
+      switch (currentPage) {
+        case 'dashboard':
+          return <Dashboard />;
+        case 'dossiers':
+          return <Dossiers onViewDetail={handleViewDossierDetail} />;
+        case 'utilisateurs':
+          return <Utilisateurs />;
+        case 'parametres':
+          return <Parametres />;
+        default:
+          return <Dashboard />;
+      }
+    };
+
+    return (
+      <>
+        <Layout
+          currentPage={currentPage}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+        >
+          {renderAdminPage()}
+        </Layout>
+        <Toaster />
+      </>
+    );
+  }
+
+  return null;
 }
-
-export default App
