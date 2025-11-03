@@ -9,6 +9,6 @@ import app.fichier.Entity.Role;
 
 @Repository
 public interface RoleRepo extends JpaRepository<Role, Long>{
-    Optional<Role> findByName(String name);
+    Optional<Role> findByRole(String name);
 
 }
