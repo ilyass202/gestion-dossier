@@ -19,11 +19,13 @@ import app.fichier.Entity.Document;
 import app.fichier.DTO.DemandeReponse;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import app.fichier.Service.DemandeService;
 import app.fichier.Service.DocumentService;
 import app.fichier.repositry.DocumentRepo;
 
 @RestController
+@Slf4j
 @RequestMapping("/demande")
 @RequiredArgsConstructor
 public class DemandeController {

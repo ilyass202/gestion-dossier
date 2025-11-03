@@ -37,7 +37,7 @@ public class Utilisateur {
     @JoinTable(name="utilisateur_role",
     joinColumns = @JoinColumn(name="utilisateur_id"),
     inverseJoinColumns = @JoinColumn(name="role_id"))
-    private Set<Role> roles;
+    private List<Role> roles;
 
     @OneToMany(mappedBy = "utilisateur", cascade = CascadeType.ALL)
     private List<Demande> demandes;
