@@ -1,6 +1,5 @@
 package app.fichier.Entity;
 import java.util.List;
-import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
