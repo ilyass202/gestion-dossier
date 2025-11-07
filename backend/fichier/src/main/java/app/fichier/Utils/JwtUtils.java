@@ -62,7 +62,7 @@ public class JwtUtils {
         catch(ExpiredJwtException e){
             log.error("Token est expiré : {}", e.getMessage());
         }
-        return false;
+        return isValid;
     }
     public Claims getClaimsFromToken(String jwt){
         SecretKey key = createSecretKey(jwt);
