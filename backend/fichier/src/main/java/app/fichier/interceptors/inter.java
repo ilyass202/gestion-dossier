@@ -19,17 +19,20 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 
 @Component
-public class inter extends OncePerRequestFilter{
+public class Inter extends OncePerRequestFilter{
 
     private final JwtUtils jwtUtils;
     private final AuthUtilisateur authUtilisateur;
-    public inter(JwtUtils jwtUtils, AuthUtilisateur authUtilisateur){
+    public Inter(JwtUtils jwtUtils, AuthUtilisateur authUtilisateur){
         this.jwtUtils = jwtUtils;
         this.authUtilisateur = authUtilisateur;
     } 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,@NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
+    try {
+        
+    
         String token = getTokenFromrequest(request);
         if(StringUtils.hasText(token) && jwtUtils.validateToken(token)){
            String nom = jwtUtils.getSubject(token);
@@ -38,6 +41,10 @@ public class inter extends OncePerRequestFilter{
            auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
            SecurityContextHolder.getContext().setAuthentication(auth);
         }
+    } catch (Exception e) {
+        SecurityContextHolder.clearContext();
+    }
+    filterChain.doFilter(request, response);
 }
     private String getTokenFromrequest(HttpServletRequest request) {
        String bearer = request.getHeader("Authorization");
