@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 
 import app.fichier.DTO.AdminDemande;
+import app.fichier.DTO.AdminDetailsDemande;
 import app.fichier.DTO.DemandeReponse;
 import app.fichier.DTO.DemandeRequete;
 import app.fichier.Entity.Demande;
@@ -31,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import app.fichier.DTO.DocumentResponse;
 import app.fichier.DTO.documentAdmin;
+import app.fichier.DTO.updateDemande;
 
 @Service
 @RequiredArgsConstructor
@@ -72,7 +74,11 @@ public class DemandeService {
         }
       }
       return new DemandeReponse(
-        demande.getStatus().toString(),demande.getId(), demande.getDateCreation(), documents
+        demande.getStatus().toString(),
+        demande.getId(), 
+        demande.getDateCreation(), 
+        documents,
+        null
       );
      }
 
@@ -92,7 +98,8 @@ public class DemandeService {
         demande.getStatus().toString(),
         demande.getId(),
         demande.getDateCreation(),
-        documents
+        documents,
+        demande.getMotifRejet()
       );
     }
     @PreAuthorize("hasRole('ADMIN')")
@@ -105,7 +112,8 @@ public class DemandeService {
          demande.getDateCreation(), 
          todocumentAdmin(demande.getDocuments()), 
          demande.getCin(), 
-         demande.getTypeAutorisation()
+         demande.getTypeAutorisation(),
+         demande.getMotifRejet()
      )).collect(Collectors.toList());
     }
     
@@ -144,7 +152,51 @@ public class DemandeService {
               demande.getDateCreation(), 
               todocumentAdmin(demande.getDocuments()), 
               demande.getCin(), 
-              demande.getTypeAutorisation()
+              demande.getTypeAutorisation(),
+              demande.getMotifRejet()
           ));
 }
+
+  public AdminDetailsDemande getDetails(String id){
+     Demande demande = demandeRepo.findById(id).orElseThrow(()-> new EntityNotFoundException("demande n'est pas trouvé"));
+     return new AdminDetailsDemande(
+         demande.getId(),
+         demande.getCin(),
+         demande.getDateCreation(),
+         todocumentAdmin(demande.getDocuments()),
+         demande.getStatus() != null ? demande.getStatus().toString() : null,
+         demande.getTypeAutorisation(),
+         demande.getMotifRejet(),
+         demande.getCommune() != null ? demande.getCommune().getNomCommune() : null
+     );
+  }
+  @Transactional
+  @PreAuthorize("hasRole('ADMIN')")
+  public AdminDetailsDemande updateDemande(String id, updateDemande updateRequest) {
+    Demande demande = demandeRepo.findById(id).orElseThrow(()-> new EntityNotFoundException("demande n'est pas trouvé")); 
+    demande.setStatus(updateRequest.status());
+    
+    if(updateRequest.status() == Status.REJETE){
+      if(updateRequest.motifRejet() == null || updateRequest.motifRejet().trim().isEmpty()){
+        throw new IllegalArgumentException("le motif de rejet est obligatoire");
+      }
+      demande.setMotifRejet(updateRequest.motifRejet().trim());
+    } else {
+      demande.setMotifRejet(null);
+    }
+    
+    demandeRepo.saveAndFlush(demande);
+    
+    return new AdminDetailsDemande(
+        demande.getId(),
+        demande.getCin(),
+        demande.getDateCreation(),
+        todocumentAdmin(demande.getDocuments()),
+        demande.getStatus() != null ? demande.getStatus().toString() : null,
+        demande.getTypeAutorisation(),
+        demande.getMotifRejet(),
+        demande.getCommune() != null ? demande.getCommune().getNomCommune() : null
+    );
+  }
+
 }

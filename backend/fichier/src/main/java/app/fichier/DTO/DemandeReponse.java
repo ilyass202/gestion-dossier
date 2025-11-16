@@ -7,7 +7,8 @@ public record DemandeReponse(
     String status, 
     String idDemande, 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime date, 
-    List<DocumentResponse> documents
+    List<DocumentResponse> documents, 
+    String motifRejet
 ) {
 
 }
