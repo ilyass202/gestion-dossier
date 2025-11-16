@@ -19,11 +19,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 
 @Component
-public class Inter extends OncePerRequestFilter{
+public class inter extends OncePerRequestFilter{
 
     private final JwtUtils jwtUtils;
     private final AuthUtilisateur authUtilisateur;
-    public Inter(JwtUtils jwtUtils, AuthUtilisateur authUtilisateur){
+    public inter(JwtUtils jwtUtils, AuthUtilisateur authUtilisateur){
         this.jwtUtils = jwtUtils;
         this.authUtilisateur = authUtilisateur;
     } 
