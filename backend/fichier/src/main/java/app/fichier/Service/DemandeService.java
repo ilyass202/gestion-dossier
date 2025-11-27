@@ -21,9 +21,11 @@ import app.fichier.DTO.AdminDemande;
 import app.fichier.DTO.AdminDetailsDemande;
 import app.fichier.DTO.DemandeReponse;
 import app.fichier.DTO.DemandeRequete;
+import app.fichier.Entity.Commune;
 import app.fichier.Entity.Demande;
 import app.fichier.Entity.Document;
 import app.fichier.Entity.Status;
+import app.fichier.repositry.CommuneRepo;
 import app.fichier.repositry.DemandeRepo;
 import app.fichier.repositry.DocumentRepo;
 import jakarta.persistence.EntityNotFoundException;
@@ -42,6 +44,7 @@ public class DemandeService {
      private final DemandeRepo demandeRepo;
      private final DocumentImple documentService;
      private final DemandeSpecification specification;
+     private final CommuneRepo communeRepo;
 
      @Transactional
      public DemandeReponse creerDemande(DemandeRequete requete){
@@ -52,6 +55,8 @@ public class DemandeService {
       demande.setStatus(Status.EN_COURS);
       GeometryFactory factory = new GeometryFactory(new PrecisionModel(), 4326);
       Point point = factory.createPoint(new Coordinate(requete.longitude(), requete.latitude()));
+      Commune commune = communeRepo.calculateIntersection(point);
+      demande.setCommune(commune);
       demande.setPointGemotrique(point);
       demandeRepo.saveAndFlush(demande);
       demande = demandeRepo.findById(demande.getId()).orElse(demande);
@@ -76,7 +81,7 @@ public class DemandeService {
       return new DemandeReponse(
         demande.getStatus().toString(),
         demande.getId(), 
-        demande.getDateCreation(), 
+        demande.getDateCreation(),
         documents,
         null
       );
