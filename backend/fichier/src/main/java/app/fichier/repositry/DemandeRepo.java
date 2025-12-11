@@ -15,5 +15,5 @@ public interface DemandeRepo extends JpaRepository<Demande, String>, JpaSpecific
 
     @Query("SELECT d.typeAutorisation, COUNT(d) FROM Demande d GROUP BY d.typeAutorisation")
     List<Object[]> countByTypeAutorisation();
-    long countByStatut(Status status);
+    long countByStatus(Status status);
 }

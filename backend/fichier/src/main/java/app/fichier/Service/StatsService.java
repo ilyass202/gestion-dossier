@@ -35,10 +35,10 @@ public class StatsService {
 
         return new StatsResponse(
             demandeRepo.count(),
-            demandeRepo.countByStatut(Status.AVIS_FAVORABLE),
-            demandeRepo.countByStatut(Status.EN_COURS),
-            demandeRepo.countByStatut(Status.ACCEPTEE),
-            demandeRepo.countByStatut(Status.REJETE),
+            demandeRepo.countByStatus(Status.AVIS_FAVORABLE),
+            demandeRepo.countByStatus(Status.EN_COURS),
+            demandeRepo.countByStatus(Status.ACCEPTEE),
+            demandeRepo.countByStatus(Status.REJETE),
             parCommune,
             parType
         );
