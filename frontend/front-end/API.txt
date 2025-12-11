@@ -1,0 +1,500 @@
+================================================================================
+                    API SÉCURISÉES - DOCUMENTATION FRONTEND REACT
+                    (Endpoints accessibles uniquement aux administrateurs)
+================================================================================
+
+URL DE BASE: http://localhost:8000
+
+IMPORTANT: Toutes ces APIs nécessitent une authentification avec le rôle ADMIN.
+           Le token JWT doit être inclus dans le header Authorization: Bearer <token>
+
+================================================================================
+1. LISTER LES DEMANDES (PAGINÉ)
+================================================================================
+
+URL: GET /admin/demandes
+Description: Récupérer la liste paginée des demandes avec filtres optionnels
+Sécurité: @PreAuthorize("hasRole('ADMIN')")
+
+Request Headers:
+  Authorization: Bearer <jwt_token>
+  Content-Type: application/json
+
+Request Parameters (Query Parameters):
+  - page: number (optionnel, défaut: 0) - Numéro de la page
+  - size: number (optionnel, défaut: 10) - Taille de la page
+  - status: string (optionnel) - Filtrer par statut
+  - type: string (optionnel) - Filtrer par type d'autorisation
+  - nomCommune: string (optionnel) - Filtrer par nom de commune
+
+Response 200 OK (JSON Schema):
+{
+  "content": [
+    {
+      "id": "string",
+      "status": "string",
+      "temps": "string",  // Format: "yyyy-MM-dd HH:mm:ss"
+      "documents": [
+        {
+          "idFichier": "string",
+          "NomFichier": "string"
+        }
+      ],
+      "cin": "string",
+      "typeAutorization": "string",
+      "motif": "string"  // null si pas de motif
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 10,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 0,
+  "totalPages": 0,
+  "last": true,
+  "size": 10,
+  "number": 0,
+  "first": true,
+  "numberOfElements": 0,
+  "empty": false
+}
+
+Exemple Request:
+  GET /admin/demandes?page=0&size=10&status=EN_COURS&type=PERMIS_CONSTRUCTION&nomCommune=Casablanca
+
+Exemple Response:
+{
+  "content": [
+    {
+      "id": "DEM12345678",
+      "status": "EN_COURS",
+      "temps": "2024-01-15 10:30:00",
+      "documents": [
+        {
+          "idFichier": "doc-123-abc",
+          "NomFichier": "document1.pdf"
+        }
+      ],
+      "cin": "AB123456",
+      "typeAutorization": "PERMIS_CONSTRUCTION",
+      "motif": null
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 10,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 1,
+  "totalPages": 1,
+  "last": true,
+  "size": 10,
+  "number": 0,
+  "first": true,
+  "numberOfElements": 1,
+  "empty": false
+}
+
+================================================================================
+2. DÉTAILS D'UNE DEMANDE
+================================================================================
+
+URL: GET /admin/details/{id}
+Description: Récupérer les détails complets d'une demande spécifique
+Sécurité: @PreAuthorize("hasRole('ADMIN')")
+
+Request Headers:
+  Authorization: Bearer <jwt_token>
+  Content-Type: application/json
+
+Path Parameters:
+  - id: string (requis) - ID de la demande
+
+Response 200 OK (JSON Schema):
+{
+  "id": "string",
+  "cin": "string",
+  "date": "string",  // Format: "yyyy-MM-dd HH:mm:ss"
+  "documents": [
+    {
+      "idFichier": "string",
+      "NomFichier": "string"
+    }
+  ],
+  "status": "string",
+  "typeAuthorization": "string",
+  "motif": "string",  // null si pas de motif
+  "nomCommune": "string"  // null si pas de commune
+}
+
+Exemple Request:
+  GET /admin/details/DEM12345678
+
+Exemple Response:
+{
+  "id": "DEM12345678",
+  "cin": "AB123456",
+  "date": "2024-01-15 10:30:00",
+  "documents": [
+    {
+      "idFichier": "doc-123-abc",
+      "NomFichier": "document1.pdf"
+    },
+    {
+      "idFichier": "doc-456-def",
+      "NomFichier": "document2.jpg"
+    }
+  ],
+  "status": "EN_COURS",
+  "typeAuthorization": "PERMIS_CONSTRUCTION",
+  "motif": null,
+  "nomCommune": "Casablanca"
+}
+
+================================================================================
+3. METTRE À JOUR LE STATUT D'UNE DEMANDE
+================================================================================
+
+URL: PATCH /admin/demande/{id}/status
+Description: Mettre à jour le statut et le motif de rejet d'une demande
+Sécurité: @PreAuthorize("hasRole('ADMIN')")
+
+Request Headers:
+  Authorization: Bearer <jwt_token>
+  Content-Type: application/json
+
+Path Parameters:
+  - id: string (requis) - ID de la demande
+
+Request Body (JSON Schema):
+{
+  "status": "string",  // Valeurs possibles exactes: "ACCEPTEE", "REJETE", "EN_COURS", "AVIS_FAVORABLE", "AVIS_DEFAVORABLE" (doit correspondre exactement aux valeurs de l'enum Status)
+  "motifRejet": "string"  // Requis si status = "REJETE", sinon peut être null ou omis
+}
+
+Response 200 OK (JSON Schema):
+{
+  "id": "string",
+  "cin": "string",
+  "date": "string",  // Format: "yyyy-MM-dd HH:mm:ss"
+  "documents": [
+    {
+      "idFichier": "string",
+      "NomFichier": "string"
+    }
+  ],
+  "status": "string",
+  "typeAuthorization": "string",
+  "motif": "string",  // null si pas de motif
+  "nomCommune": "string"  // null si pas de commune
+}
+
+Exemple Request:
+  PATCH /admin/demande/DEM12345678/status
+  Body:
+  {
+    "status": "ACCEPTEE",
+    "motifRejet": null
+  }
+
+Exemple Request (Rejet):
+  PATCH /admin/demande/DEM12345678/status
+  Body:
+  {
+    "status": "REJETE",
+    "motifRejet": "Documents incomplets"
+  }
+
+Exemple Response:
+{
+  "id": "DEM12345678",
+  "cin": "AB123456",
+  "date": "2024-01-15 10:30:00",
+  "documents": [
+    {
+      "idFichier": "doc-123-abc",
+      "NomFichier": "document1.pdf"
+    }
+  ],
+  "status": "ACCEPTEE",
+  "typeAuthorization": "PERMIS_CONSTRUCTION",
+  "motif": null,
+  "nomCommune": "Casablanca"
+}
+
+================================================================================
+4. STATISTIQUES
+================================================================================
+
+URL: GET /stats/getStats
+Description: Récupérer les statistiques globales des demandes
+Sécurité: @PreAuthorize("hasRole('ADMIN')")
+
+Request Headers:
+  Authorization: Bearer <jwt_token>
+  Content-Type: application/json
+
+Response 200 OK (JSON Schema):
+{
+  "total": 0,
+  "deposees": 0,
+  "enCours": 0,
+  "acceptees": 0,
+  "rejetees": 0,
+  "parCommune": {
+    "string": 0  // Map<Commune, Count>
+  },
+  "parType": {
+    "string": 0  // Map<Type, Count>
+  }
+}
+
+Exemple Request:
+  GET /stats/getStats
+
+Exemple Response:
+{
+  "total": 150,
+  "deposees": 50,
+  "enCours": 30,
+  "acceptees": 60,
+  "rejetees": 10,
+  "parCommune": {
+    "Casablanca": 45,
+    "Rabat": 30,
+    "Marrakech": 25,
+    "Fès": 20,
+    "Tanger": 15,
+    "Autres": 15
+  },
+  "parType": {
+    "PERMIS_CONSTRUCTION": 80,
+    "AUTORISATION_OUVERTURE": 40,
+    "CERTIFICAT_URBANISME": 30
+  }
+}
+
+================================================================================
+                    SCHÉMAS JSON COMPLETS POUR REACT
+================================================================================
+
+1. AdminDemande (dans Page<AdminDemande>):
+{
+  "id": "string",
+  "status": "string",
+  "temps": "string",  // Format: "yyyy-MM-dd HH:mm:ss"
+  "documents": [
+    {
+      "idFichier": "string",
+      "NomFichier": "string"
+    }
+  ],
+  "cin": "string",
+  "typeAutorization": "string",
+  "motif": "string"  // Peut être null
+}
+
+2. Page<AdminDemande> (Structure Spring Page):
+{
+  "content": [AdminDemande[]],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 10,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 0,
+  "totalPages": 0,
+  "last": true,
+  "size": 10,
+  "number": 0,
+  "first": true,
+  "numberOfElements": 0,
+  "empty": false
+}
+
+3. AdminDetailsDemande:
+{
+  "id": "string",
+  "cin": "string",
+  "date": "string",  // Format: "yyyy-MM-dd HH:mm:ss"
+  "documents": [
+    {
+      "idFichier": "string",
+      "NomFichier": "string"
+    }
+  ],
+  "status": "string",
+  "typeAuthorization": "string",
+  "motif": "string",  // Peut être null
+  "nomCommune": "string"  // Peut être null
+}
+
+4. updateDemande (Request):
+{
+  "status": "string",  // Valeurs exactes: "ACCEPTEE" | "REJETE" | "EN_COURS" | "AVIS_FAVORABLE" | "AVIS_DEFAVORABLE" (doit correspondre exactement aux valeurs de l'enum Status)
+  "motifRejet": "string"  // Requis si status = "REJETE", sinon peut être null ou omis
+}
+
+5. StatsResponse:
+{
+  "total": 0,
+  "deposees": 0,
+  "enCours": 0,
+  "acceptees": 0,
+  "rejetees": 0,
+  "parCommune": {
+    "string": 0
+  },
+  "parType": {
+    "string": 0
+  }
+}
+
+6. documentAdmin (Nested dans AdminDemande et AdminDetailsDemande):
+{
+  "idFichier": "string",
+  "NomFichier": "string"
+}
+
+================================================================================
+                    VALEURS POSSIBLES POUR STATUS
+================================================================================
+
+Les valeurs possibles pour le champ "status" sont:
+  - "ACCEPTEE"
+  - "REJETE"
+  - "EN_COURS"
+  - "AVIS_FAVORABLE"
+  - "AVIS_DEFAVORABLE"
+
+================================================================================
+                    NOTES IMPORTANTES POUR LE FRONTEND
+================================================================================
+
+1. AUTHENTIFICATION: Toutes ces APIs nécessitent un token JWT valide avec le rôle ADMIN.
+   Le token doit être inclus dans le header: Authorization: Bearer <token>
+
+2. NOMS DE CHAMPS: Les noms de champs doivent être EXACTEMENT identiques entre le frontend
+   et le backend pour que tout fonctionne correctement.
+
+3. FORMAT DE DATE: Les dates sont au format "yyyy-MM-dd HH:mm:ss" (ex: "2024-01-15 10:30:00")
+
+4. PAGINATION: L'endpoint /admin/demandes retourne une structure Page de Spring.
+   Utilisez les propriétés totalPages, totalElements, number, size pour gérer la pagination.
+
+5. FILTRES: Les paramètres de filtrage (status, type, nomCommune) sont optionnels.
+   Vous pouvez combiner plusieurs filtres dans une même requête.
+
+6. UPDATE STATUS: Lors de la mise à jour du statut:
+   - Si status = "REJETE", le champ motifRejet est requis
+   - Pour les autres statuts, motifRejet peut être null
+
+7. GESTION D'ERREURS: Toujours gérer les codes de statut HTTP:
+   - 200: Succès
+   - 401: Non authentifié (token manquant ou invalide)
+   - 403: Accès refusé (pas le rôle ADMIN)
+   - 404: Ressource introuvable
+   - 400: Requête invalide
+
+================================================================================
+                    EXEMPLES D'UTILISATION EN REACT
+================================================================================
+
+// Exemple: Lister les demandes avec filtres
+const listerDemandes = async (token, page = 0, size = 10, filters = {}) => {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    size: size.toString(),
+    ...(filters.status && { status: filters.status }),
+    ...(filters.type && { type: filters.type }),
+    ...(filters.nomCommune && { nomCommune: filters.nomCommune })
+  });
+  
+  const response = await fetch(`http://localhost:8000/admin/demandes?${params}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Erreur lors de la récupération des demandes');
+  }
+  
+  const data = await response.json();
+  return data;
+};
+
+// Exemple: Obtenir les détails d'une demande
+const getDetailsDemande = async (token, id) => {
+  const response = await fetch(`http://localhost:8000/admin/details/${id}`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Erreur lors de la récupération des détails');
+  }
+  
+  const data = await response.json();
+  return data;
+};
+
+// Exemple: Mettre à jour le statut d'une demande
+const updateStatusDemande = async (token, id, status, motifRejet = null) => {
+  const response = await fetch(`http://localhost:8000/admin/demande/${id}/status`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      status: status,
+      motifRejet: motifRejet
+    })
+  });
+  
+  if (!response.ok) {
+    throw new Error('Erreur lors de la mise à jour du statut');
+  }
+  
+  const data = await response.json();
+  return data;
+};
+
+// Exemple: Obtenir les statistiques
+const getStats = async (token) => {
+  const response = await fetch('http://localhost:8000/stats/getStats', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error('Erreur lors de la récupération des statistiques');
+  }
+  
+  const data = await response.json();
+  return data;
+};
+
+================================================================================
+FIN DU DOCUMENT
+================================================================================
+
