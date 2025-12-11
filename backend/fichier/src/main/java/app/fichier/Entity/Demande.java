@@ -31,6 +31,8 @@ import lombok.NoArgsConstructor;
 public class Demande extends BaseAuditing{
     @Id
     private String id;
+    @Column(columnDefinition = "TEXT")
+    private String motifRejet;
     private String cin;
     private String typeAutorisation;
     @ManyToOne(fetch = FetchType.EAGER
