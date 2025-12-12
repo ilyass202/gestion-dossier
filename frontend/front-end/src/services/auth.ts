@@ -37,7 +37,10 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
   
   // Stocker le token dans localStorage
   if (data.token) {
-    localStorage.setItem('authToken', data.token);
+    localStorage.setItem('token', data.token);
+    console.log('Token JWT stocké dans localStorage avec la clé "token"');
+  } else {
+    console.error('ERREUR: Aucun token dans la réponse du serveur!', data);
   }
 
   return data;
@@ -45,16 +48,17 @@ export const login = async (credentials: LoginRequest): Promise<LoginResponse> =
 
 // Fonction de déconnexion
 export const logout = (): void => {
-  localStorage.removeItem('authToken');
+  localStorage.removeItem('token');
 };
 
 // Vérifier si l'utilisateur est connecté
 export const isAuthenticated = (): boolean => {
-  return !!localStorage.getItem('authToken');
+  return !!localStorage.getItem('token');
 };
 
 // Obtenir le token
 export const getToken = (): string | null => {
-  return localStorage.getItem('authToken');
+  return localStorage.getItem('token');
 };
+
 
