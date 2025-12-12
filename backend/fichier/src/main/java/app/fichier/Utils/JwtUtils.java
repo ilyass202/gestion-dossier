@@ -43,7 +43,7 @@ public class JwtUtils {
 
         try {
             Jwts.parser()
-                .setSigningKey(createSecretKey(jwt))
+                .setSigningKey(createSecretKey(JWT_SECRET))
                 .build()
                 .parseClaimsJws(jwt);
             isValid = true;
@@ -65,7 +65,7 @@ public class JwtUtils {
         return isValid;
     }
     public Claims getClaimsFromToken(String jwt){
-        SecretKey key = createSecretKey(jwt);
+        SecretKey key = createSecretKey(JWT_SECRET);
         return Jwts.parser()
                    .setSigningKey(key)
                    .build()

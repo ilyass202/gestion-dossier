@@ -46,14 +46,16 @@ public class inter extends OncePerRequestFilter{
            SecurityContextHolder.getContext().setAuthentication(auth);
         }
     } catch (Exception e) {
+        // Logger l'erreur pour le débogage mais ne pas exposer les détails à l'utilisateur
+        org.slf4j.LoggerFactory.getLogger(inter.class).debug("Erreur lors de la validation du token JWT: {}", e.getMessage());
         SecurityContextHolder.clearContext();
     }
     filterChain.doFilter(request, response);
 }
     private String getTokenFromrequest(HttpServletRequest request) {
        String bearer = request.getHeader("Authorization");
-       if(StringUtils.hasText(bearer) && bearer.startsWith("Bearer")){
-        return bearer.substring(7, bearer.length());
+       if(StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")){
+        return bearer.substring(7).trim();
        }
        return null;
 
