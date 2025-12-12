@@ -12,6 +12,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import app.fichier.Service.AuthUtilisateur;
 import app.fichier.Utils.JwtUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,47 +33,18 @@ public class inter extends OncePerRequestFilter{
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,@NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-    try {
-        // Laisser passer les requêtes OPTIONS (preflight CORS) sans authentification
-        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-    
-        String token = getTokenFromrequest(request);
-        log.info("Token extrait de la requête {}: {}", request.getRequestURI(), token != null ? "présent" : "absent");
-        
-        if(StringUtils.hasText(token)) {
-            log.info("Validation du token pour {}", request.getRequestURI());
-            boolean isValid = jwtUtils.validateToken(token);
-            log.info("Token valide pour {}: {}", request.getRequestURI(), isValid);
-            
-            if(isValid){
-               log.info("Extraction du subject du token...");
-               String nom = jwtUtils.getSubject(token);
-               log.info("Subject extrait: {}", nom);
                
-               log.info("Chargement de l'utilisateur: {}", nom);
-               UserDetails details = authUtilisateur.loadUserByUsername(nom);
-               log.info("Utilisateur chargé, rôles: {}", details.getAuthorities());
-               
-               var auth = new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities());
-               auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-               SecurityContextHolder.getContext().setAuthentication(auth);
-               log.info("Authentification définie dans le contexte de sécurité pour {}", request.getRequestURI());
-            } else {
-               log.warn("Token invalide pour la requête: {}", request.getRequestURI());
+                String token = getTokenFromrequest(request);
+                if(StringUtils.hasText(token) && jwtUtils.validateToken(token)){
+                    Claims claims = jwtUtils.getClaimsFromToken(token);
+                    String username = claims.getSubject();
+                    UserDetails userDetails = authUtilisateur.loadUserByUsername(username);
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+                filterChain.doFilter(request, response);
             }
-        } else {
-            log.warn("Aucun token trouvé dans la requête: {}", request.getRequestURI());
-        }
-    } catch (Exception e) {
-        // Logger l'erreur pour le débogage
-        log.error("Erreur lors de la validation du token JWT: {}", e.getMessage(), e);
-        SecurityContextHolder.clearContext();
-    }
-    filterChain.doFilter(request, response);
-}
     private String getTokenFromrequest(HttpServletRequest request) {
        String bearer = request.getHeader("Authorization");
        if(StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")){

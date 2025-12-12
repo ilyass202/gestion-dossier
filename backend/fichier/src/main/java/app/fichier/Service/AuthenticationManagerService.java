@@ -22,7 +22,7 @@ public class AuthenticationManagerService {
         );
         if(authentication.isAuthenticated()){
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            return jwtUtils.generateToken(authentication, 0);
+            return jwtUtils.generateToken(authentication, 3600000L);
         }
         return "";
     }
