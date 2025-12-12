@@ -69,15 +69,42 @@ export interface DemandeFilters {
   nomCommune?: string;
 }
 
+// Helper pour obtenir les headers avec le token
+const getAuthHeaders = (): { [key: string]: string } => {
+  const headers: { [key: string]: string } = {
+    'Content-Type': 'application/json',
+  };
+  
+  const token = localStorage.getItem('token');
+  if (token && token.trim() !== '') {
+    headers['Authorization'] = `Bearer ${token.trim()}`;
+  } else {
+    // Si pas de token, rediriger vers la connexion
+    console.error('ERREUR: Aucun token JWT trouvé dans localStorage!');
+    window.location.href = '/';
+    throw new Error('Vous devez vous connecter pour accéder à cette ressource.');
+  }
+  
+  return headers;
+};
+
 // Gestion des erreurs
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
     if (response.status === 401) {
       // Token invalide ou expiré
       localStorage.removeItem('token');
+      // Rediriger vers la page de connexion
+      window.location.href = '/';
       throw new Error('Session expirée. Veuillez vous reconnecter.');
     }
     if (response.status === 403) {
+      // Si pas de token, rediriger vers la connexion
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = '/';
+        throw new Error('Vous devez vous connecter pour accéder à cette ressource.');
+      }
       throw new Error('Accès refusé. Vous devez être administrateur.');
     }
     if (response.status === 404) {
@@ -103,22 +130,7 @@ export const listerDemandes = async (
     ...(filters.nomCommune && { nomCommune: filters.nomCommune }),
   });
 
-  // Récupérer le token depuis localStorage
-  const token = localStorage.getItem('token');
-  
-  // Construire les headers
-  const headers: { [key: string]: string } = {
-    'Content-Type': 'application/json',
-  };
-  
-  // Ajouter le token JWT si présent
-  if (token && token.trim() !== '') {
-    headers['Authorization'] = `Bearer ${token.trim()}`;
-    console.log('Token JWT ajouté aux headers');
-  } else {
-    console.error('ERREUR: Aucun token JWT trouvé dans localStorage!');
-    console.log('Clés localStorage:', Object.keys(localStorage));
-  }
+  const headers = getAuthHeaders();
 
   const response = await fetch(`${API_BASE_URL}/admin/demandes?${params}`, {
     method: 'GET',
@@ -130,14 +142,7 @@ export const listerDemandes = async (
 
 // 2. Obtenir les détails d'une demande
 export const getDetailsDemande = async (id: string): Promise<AdminDetailsDemande> => {
-  const token = localStorage.getItem('token');
-  const headers: { [key: string]: string } = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (token && token.trim() !== '') {
-    headers['Authorization'] = `Bearer ${token.trim()}`;
-  }
+  const headers = getAuthHeaders();
 
   const response = await fetch(`${API_BASE_URL}/admin/details/${id}`, {
     method: 'GET',
@@ -158,14 +163,7 @@ export const updateStatusDemande = async (
     ...(status === 'REJETE' && motifRejet && { motifRejet }),
   };
 
-  const token = localStorage.getItem('token');
-  const headers: { [key: string]: string } = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (token && token.trim() !== '') {
-    headers['Authorization'] = `Bearer ${token.trim()}`;
-  }
+  const headers = getAuthHeaders();
 
   const response = await fetch(`${API_BASE_URL}/admin/demande/${id}/status`, {
     method: 'PATCH',
@@ -178,14 +176,7 @@ export const updateStatusDemande = async (
 
 // 4. Obtenir les statistiques
 export const getStats = async (): Promise<StatsResponse> => {
-  const token = localStorage.getItem('token');
-  const headers: { [key: string]: string } = {
-    'Content-Type': 'application/json',
-  };
-  
-  if (token && token.trim() !== '') {
-    headers['Authorization'] = `Bearer ${token.trim()}`;
-  }
+  const headers = getAuthHeaders();
 
   const response = await fetch(`${API_BASE_URL}/stats/getStats`, {
     method: 'GET',
