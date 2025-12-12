@@ -34,9 +34,18 @@ public class AuthUtilisateur implements UserDetailsService{
 
     private Collection<? extends GrantedAuthority> getAutorities(List<Role> roles) 
     {
-        
-        return roles.stream().map(role -> new SimpleGrantedAuthority(role.getRole())).collect(Collectors.toList());
-      
+        return roles.stream()
+            .map(role -> {
+                String roleName = role.getRole();
+                // S'assurer que le rôle a le préfixe ROLE_ pour hasRole()
+                // Si le rôle dans la BD est "ADMIN", il devient "ROLE_ADMIN"
+                // Si le rôle dans la BD est déjà "ROLE_ADMIN", il reste "ROLE_ADMIN"
+                if (!roleName.startsWith("ROLE_")) {
+                    roleName = "ROLE_" + roleName;
+                }
+                return new SimpleGrantedAuthority(roleName);
+            })
+            .collect(Collectors.toList());
     }
 
 }

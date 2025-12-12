@@ -1,6 +1,7 @@
 package app.fichier.Utils;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
@@ -26,12 +27,21 @@ public class JwtUtils {
     
     public String generateToken(Authentication auth, long exp){
            SecretKey key = createSecretKey(getJwtSecret());
-           Date date = new Date();
-           Date expiration = new Date(date.getTime() + exp);
+           Date now = new Date();
+           // Si exp est 0 ou négatif, utiliser une expiration par défaut de 24 heures
+           long expirationTime = (exp > 0) ? exp : 24 * 60 * 60 * 1000L; // 24 heures par défaut
+           Date expiration = new Date(now.getTime() + expirationTime);
+           
+           // Extraire les noms des rôles depuis les GrantedAuthority
+           List<String> roles = auth.getAuthorities().stream()
+               .map(grantedAuthority -> grantedAuthority.getAuthority())
+               .collect(Collectors.toList());
+           
            return Jwts.builder()
                       .setSubject(auth.getName())
-                      .issuedAt(expiration)
-                      .claim("roles", auth.getAuthorities())
+                      .issuedAt(now)
+                      .expiration(expiration)
+                      .claim("roles", roles)
                       .signWith(key, SignatureAlgorithm.HS256)
                       .compact();
     }
