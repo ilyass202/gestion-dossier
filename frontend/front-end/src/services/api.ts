@@ -69,26 +69,6 @@ export interface DemandeFilters {
   nomCommune?: string;
 }
 
-// Fonction utilitaire pour obtenir le token
-const getToken = (): string | null => {
-  return localStorage.getItem('authToken');
-};
-
-// Fonction utilitaire pour les headers
-const getHeaders = (): Record<string, string> => {
-  const token = getToken();
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-  };
-  
-  // Ajouter le token JWT s'il existe
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-  
-  return headers;
-};
-
 // Gestion des erreurs
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
@@ -123,9 +103,18 @@ export const listerDemandes = async (
     ...(filters.nomCommune && { nomCommune: filters.nomCommune }),
   });
 
+  const token = localStorage.getItem('authToken');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}/admin/demandes?${params}`, {
     method: 'GET',
-    headers: getHeaders(),
+    headers: headers,
   });
 
   return handleResponse(response);
@@ -133,9 +122,18 @@ export const listerDemandes = async (
 
 // 2. Obtenir les détails d'une demande
 export const getDetailsDemande = async (id: string): Promise<AdminDetailsDemande> => {
+  const token = localStorage.getItem('authToken');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}/admin/details/${id}`, {
     method: 'GET',
-    headers: getHeaders(),
+    headers: headers,
   });
 
   return handleResponse(response);
@@ -152,9 +150,18 @@ export const updateStatusDemande = async (
     ...(status === 'REJETE' && motifRejet && { motifRejet }),
   };
 
+  const token = localStorage.getItem('authToken');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}/admin/demande/${id}/status`, {
     method: 'PATCH',
-    headers: getHeaders(),
+    headers: headers,
     body: JSON.stringify(body),
   });
 
@@ -163,9 +170,18 @@ export const updateStatusDemande = async (
 
 // 4. Obtenir les statistiques
 export const getStats = async (): Promise<StatsResponse> => {
+  const token = localStorage.getItem('authToken');
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${API_BASE_URL}/stats/getStats`, {
     method: 'GET',
-    headers: getHeaders(),
+    headers: headers,
   });
 
   return handleResponse(response);
