@@ -40,31 +40,31 @@ public class inter extends OncePerRequestFilter{
         }
     
         String token = getTokenFromrequest(request);
-        log.debug("Token extrait de la requête: {}", token != null ? "présent" : "absent");
+        log.info("Token extrait de la requête {}: {}", request.getRequestURI(), token != null ? "présent" : "absent");
         
         if(StringUtils.hasText(token)) {
-            log.debug("Validation du token...");
+            log.info("Validation du token pour {}", request.getRequestURI());
             boolean isValid = jwtUtils.validateToken(token);
-            log.debug("Token valide: {}", isValid);
+            log.info("Token valide pour {}: {}", request.getRequestURI(), isValid);
             
             if(isValid){
-               log.debug("Extraction du subject du token...");
+               log.info("Extraction du subject du token...");
                String nom = jwtUtils.getSubject(token);
-               log.debug("Subject extrait: {}", nom);
+               log.info("Subject extrait: {}", nom);
                
-               log.debug("Chargement de l'utilisateur: {}", nom);
+               log.info("Chargement de l'utilisateur: {}", nom);
                UserDetails details = authUtilisateur.loadUserByUsername(nom);
-               log.debug("Utilisateur chargé, rôles: {}", details.getAuthorities());
+               log.info("Utilisateur chargé, rôles: {}", details.getAuthorities());
                
                var auth = new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities());
                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                SecurityContextHolder.getContext().setAuthentication(auth);
-               log.debug("Authentification définie dans le contexte de sécurité");
+               log.info("Authentification définie dans le contexte de sécurité pour {}", request.getRequestURI());
             } else {
                log.warn("Token invalide pour la requête: {}", request.getRequestURI());
             }
         } else {
-            log.debug("Aucun token trouvé dans la requête: {}", request.getRequestURI());
+            log.warn("Aucun token trouvé dans la requête: {}", request.getRequestURI());
         }
     } catch (Exception e) {
         // Logger l'erreur pour le débogage

@@ -78,9 +78,11 @@ const getAuthHeaders = (): { [key: string]: string } => {
   const token = localStorage.getItem('token');
   if (token && token.trim() !== '') {
     headers['Authorization'] = `Bearer ${token.trim()}`;
+    console.log('Token JWT envoyé dans les headers:', token.substring(0, 20) + '...');
   } else {
     // Si pas de token, rediriger vers la connexion
     console.error('ERREUR: Aucun token JWT trouvé dans localStorage!');
+    console.log('Clés localStorage:', Object.keys(localStorage));
     window.location.href = '/';
     throw new Error('Vous devez vous connecter pour accéder à cette ressource.');
   }
