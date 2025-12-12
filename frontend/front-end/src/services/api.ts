@@ -74,7 +74,7 @@ const handleResponse = async (response: Response) => {
   if (!response.ok) {
     if (response.status === 401) {
       // Token invalide ou expiré
-      localStorage.removeItem('authToken');
+      localStorage.removeItem('token');
       throw new Error('Session expirée. Veuillez vous reconnecter.');
     }
     if (response.status === 403) {
@@ -104,7 +104,7 @@ export const listerDemandes = async (
   });
 
   // Récupérer le token depuis localStorage
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('token');
   
   // Construire les headers
   const headers: { [key: string]: string } = {
@@ -130,7 +130,7 @@ export const listerDemandes = async (
 
 // 2. Obtenir les détails d'une demande
 export const getDetailsDemande = async (id: string): Promise<AdminDetailsDemande> => {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('token');
   const headers: { [key: string]: string } = {
     'Content-Type': 'application/json',
   };
@@ -158,7 +158,7 @@ export const updateStatusDemande = async (
     ...(status === 'REJETE' && motifRejet && { motifRejet }),
   };
 
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('token');
   const headers: { [key: string]: string } = {
     'Content-Type': 'application/json',
   };
@@ -178,7 +178,7 @@ export const updateStatusDemande = async (
 
 // 4. Obtenir les statistiques
 export const getStats = async (): Promise<StatsResponse> => {
-  const token = localStorage.getItem('authToken');
+  const token = localStorage.getItem('token');
   const headers: { [key: string]: string } = {
     'Content-Type': 'application/json',
   };
