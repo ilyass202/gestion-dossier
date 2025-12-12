@@ -75,12 +75,18 @@ const getToken = (): string | null => {
 };
 
 // Fonction utilitaire pour les headers
-const getHeaders = (): HeadersInit => {
+const getHeaders = (): Record<string, string> => {
   const token = getToken();
-  return {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...(token && { 'Authorization': `Bearer ${token}` }),
   };
+  
+  // Ajouter le token JWT s'il existe
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  return headers;
 };
 
 // Gestion des erreurs
@@ -164,4 +170,5 @@ export const getStats = async (): Promise<StatsResponse> => {
 
   return handleResponse(response);
 };
+
 
