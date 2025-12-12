@@ -31,7 +31,11 @@ public class inter extends OncePerRequestFilter{
     protected void doFilterInternal(@NonNull HttpServletRequest request,@NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
     try {
-        
+        // Laisser passer les requêtes OPTIONS (preflight CORS) sans authentification
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
     
         String token = getTokenFromrequest(request);
         if(StringUtils.hasText(token) && jwtUtils.validateToken(token)){

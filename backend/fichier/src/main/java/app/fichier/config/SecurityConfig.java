@@ -39,10 +39,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors().and().authorizeHttpRequests(auth -> auth
+            .cors(cors -> cors.configurationSource(corsConfiguration())).and().authorizeHttpRequests(auth -> auth
                 .requestMatchers("/demande/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN") 
+                .requestMatchers("/admin/**").hasRole("ADMIN")
+                .requestMatchers("/stats/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             ).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .addFilterBefore(intercepteur, UsernamePasswordAuthenticationFilter.class)
@@ -56,10 +57,18 @@ public class SecurityConfig {
     @Bean 
     public CorsConfigurationSource corsConfiguration(){
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        // Autoriser les origines spécifiques (utiliser des patterns pour compatibilité avec credentials)
+        // Vite par défaut sur 5173, mais peut varier
+        config.setAllowedOriginPatterns(List.of(
+            "http://localhost:*",
+            "http://127.0.0.1:*"
+        ));
         config.setAllowCredentials(true);
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowedHeaders(List.of("*"));
+        // Méthodes HTTP autorisées
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        // Exposer les headers personnalisés si nécessaire
+        config.setExposedHeaders(List.of("Authorization"));
         var url = new UrlBasedCorsConfigurationSource();
         url.registerCorsConfiguration("/**", config);
         return url;
