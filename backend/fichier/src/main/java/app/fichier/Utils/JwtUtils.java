@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.crypto.SecretKey;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -20,10 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class JwtUtils {
-    private final static String JWT_SECRET = System.getenv("JWT_SECRET"); 
+    @Value("${jwt.secret:#{systemEnvironment['JWT_SECRET']}}")
+    private String jwtSecret; 
     
     public String generateToken(Authentication auth, long exp){
-           SecretKey key = createSecretKey(JWT_SECRET);
+           SecretKey key = createSecretKey(getJwtSecret());
            Date date = new Date();
            Date expiration = new Date(date.getTime() + exp);
            return Jwts.builder()
@@ -33,21 +35,35 @@ public class JwtUtils {
                       .signWith(key, SignatureAlgorithm.HS256)
                       .compact();
     }
+    
+    private String getJwtSecret() {
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            throw new IllegalStateException("JWT_SECRET n'est pas défini. Définissez-le dans application.properties ou comme variable d'environnement.");
+        }
+        return jwtSecret;
+    }
 
     private SecretKey createSecretKey(String jwtSecret) {
-       byte[] key = Decoders.BASE64.decode(jwtSecret);
-       return Keys.hmacShaKeyFor(key);
+        try {
+            byte[] key = Decoders.BASE64.decode(jwtSecret);
+            return Keys.hmacShaKeyFor(key);
+        } catch (IllegalArgumentException e) {
+            log.error("Erreur lors du décodage de JWT_SECRET (doit être en Base64): {}", e.getMessage());
+            throw new IllegalStateException("JWT_SECRET invalide. Il doit être encodé en Base64.", e);
+        }
     }
     public boolean validateToken(String jwt){
-        boolean isValid = false;
+        if (jwt == null || jwt.isEmpty()) {
+            log.debug("Token JWT est null ou vide");
+            return false;
+        }
 
         try {
             Jwts.parser()
-                .setSigningKey(createSecretKey(JWT_SECRET))
+                .setSigningKey(createSecretKey(getJwtSecret()))
                 .build()
                 .parseClaimsJws(jwt);
-            isValid = true;
-            return isValid;
+            return true;
             
         } catch (UnsupportedJwtException e) {
             log.error("Token non supporté :{}", e.getMessage());
@@ -62,10 +78,13 @@ public class JwtUtils {
         catch(ExpiredJwtException e){
             log.error("Token est expiré : {}", e.getMessage());
         }
-        return isValid;
+        catch (Exception e) {
+            log.error("Erreur inattendue lors de la validation du token : {}", e.getMessage());
+        }
+        return false;
     }
     public Claims getClaimsFromToken(String jwt){
-        SecretKey key = createSecretKey(JWT_SECRET);
+        SecretKey key = createSecretKey(getJwtSecret());
         return Jwts.parser()
                    .setSigningKey(key)
                    .build()

@@ -23,6 +23,8 @@ public class inter extends OncePerRequestFilter{
 
     private final JwtUtils jwtUtils;
     private final AuthUtilisateur authUtilisateur;
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(inter.class);
+    
     public inter(JwtUtils jwtUtils, AuthUtilisateur authUtilisateur){
         this.jwtUtils = jwtUtils;
         this.authUtilisateur = authUtilisateur;
@@ -38,16 +40,35 @@ public class inter extends OncePerRequestFilter{
         }
     
         String token = getTokenFromrequest(request);
-        if(StringUtils.hasText(token) && jwtUtils.validateToken(token)){
-           String nom = jwtUtils.getSubject(token);
-           UserDetails details = authUtilisateur.loadUserByUsername(nom);
-           var auth = new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities());
-           auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-           SecurityContextHolder.getContext().setAuthentication(auth);
+        log.debug("Token extrait de la requête: {}", token != null ? "présent" : "absent");
+        
+        if(StringUtils.hasText(token)) {
+            log.debug("Validation du token...");
+            boolean isValid = jwtUtils.validateToken(token);
+            log.debug("Token valide: {}", isValid);
+            
+            if(isValid){
+               log.debug("Extraction du subject du token...");
+               String nom = jwtUtils.getSubject(token);
+               log.debug("Subject extrait: {}", nom);
+               
+               log.debug("Chargement de l'utilisateur: {}", nom);
+               UserDetails details = authUtilisateur.loadUserByUsername(nom);
+               log.debug("Utilisateur chargé, rôles: {}", details.getAuthorities());
+               
+               var auth = new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities());
+               auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+               SecurityContextHolder.getContext().setAuthentication(auth);
+               log.debug("Authentification définie dans le contexte de sécurité");
+            } else {
+               log.warn("Token invalide pour la requête: {}", request.getRequestURI());
+            }
+        } else {
+            log.debug("Aucun token trouvé dans la requête: {}", request.getRequestURI());
         }
     } catch (Exception e) {
-        // Logger l'erreur pour le débogage mais ne pas exposer les détails à l'utilisateur
-        org.slf4j.LoggerFactory.getLogger(inter.class).debug("Erreur lors de la validation du token JWT: {}", e.getMessage());
+        // Logger l'erreur pour le débogage
+        log.error("Erreur lors de la validation du token JWT: {}", e.getMessage(), e);
         SecurityContextHolder.clearContext();
     }
     filterChain.doFilter(request, response);
