@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class JwtUtils {
-    @Value("${jwt.secret:#{systemEnvironment['JWT_SECRET']}}")
+    @Value("${JWT_SECRET}")
     private String jwtSecret; 
     
     public String generateToken(Authentication auth, long exp){
