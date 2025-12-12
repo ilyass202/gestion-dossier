@@ -1,0 +1,427 @@
+{
+	"info": {
+		"_postman_id": "gestion-dossier-api",
+		"name": "Gestion Dossier API",
+		"description": "Collection complète pour tester l'API de gestion de dossiers",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    if (jsonData.token) {",
+									"        pm.collectionVariables.set(\"token\", jsonData.token);",
+									"        console.log(\"Token sauvegardé: \" + jsonData.token.substring(0, 20) + \"...\");",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@example.com\",\n    \"password\": \"votre_mot_de_passe\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Authentification utilisateur. Le token JWT est automatiquement sauvegardé dans la variable de collection 'token'."
+					}
+				}
+			]
+		},
+		{
+			"name": "Demande (Public)",
+			"item": [
+				{
+					"name": "Envoyer Demande",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "typeAutorisation",
+									"value": "AUTORISATION_OUVERTURE",
+									"type": "text",
+									"description": "Type d'autorisation"
+								},
+								{
+									"key": "cinDemandeur",
+									"value": "AB123456",
+									"type": "text",
+									"description": "CIN du demandeur"
+								},
+								{
+									"key": "latitude",
+									"value": "33.5731",
+									"type": "text",
+									"description": "Latitude"
+								},
+								{
+									"key": "longitude",
+									"value": "-7.5898",
+									"type": "text",
+									"description": "Longitude"
+								},
+								{
+									"key": "files",
+									"type": "file",
+									"src": [],
+									"description": "Fichiers à joindre (optionnel)"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/demande/envoyerDemande",
+							"host": ["{{baseUrl}}"],
+							"path": ["demande", "envoyerDemande"]
+						},
+						"description": "Créer une nouvelle demande (public, pas besoin d'authentification)"
+					}
+				},
+				{
+					"name": "Track Demande",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/demande/track?idDemande=DEMANDE_ID&cinDemandeur=AB123456",
+							"host": ["{{baseUrl}}"],
+							"path": ["demande", "track"],
+							"query": [
+								{
+									"key": "idDemande",
+									"value": "DEMANDE_ID",
+									"description": "ID de la demande"
+								},
+								{
+									"key": "cinDemandeur",
+									"value": "AB123456",
+									"description": "CIN du demandeur"
+								}
+							]
+						},
+						"description": "Suivre l'état d'une demande (public, pas besoin d'authentification)"
+					}
+				},
+				{
+					"name": "Télécharger Document",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/demande/telecharger/DOCUMENT_ID?cin=AB123456&demandeId=DEMANDE_ID",
+							"host": ["{{baseUrl}}"],
+							"path": ["demande", "telecharger", "DOCUMENT_ID"],
+							"query": [
+								{
+									"key": "cin",
+									"value": "AB123456",
+									"description": "CIN du demandeur"
+								},
+								{
+									"key": "demandeId",
+									"value": "DEMANDE_ID",
+									"description": "ID de la demande"
+								}
+							]
+						},
+						"description": "Télécharger un document associé à une demande (public, pas besoin d'authentification)"
+					}
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "Lister Demandes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/demandes?page=0&size=10&status=EN_COURS&type=AUTORISATION_OUVERTURE&nomCommune=Casablanca",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "demandes"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0",
+									"description": "Numéro de page (défaut: 0)"
+								},
+								{
+									"key": "size",
+									"value": "10",
+									"description": "Taille de la page (défaut: 10)"
+								},
+								{
+									"key": "status",
+									"value": "EN_COURS",
+									"description": "Filtre par statut (optionnel): ACCEPTEE, REJETE, EN_COURS, AVIS_FAVORABLE, AVIS_DEFAVORABLE"
+								},
+								{
+									"key": "type",
+									"value": "AUTORISATION_OUVERTURE",
+									"description": "Filtre par type (optionnel)"
+								},
+								{
+									"key": "nomCommune",
+									"value": "Casablanca",
+									"description": "Filtre par nom de commune (optionnel)"
+								}
+							]
+						},
+						"description": "Lister toutes les demandes avec pagination et filtres (nécessite le rôle ADMIN)"
+					}
+				},
+				{
+					"name": "Lister Demandes - Sans filtres",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/demandes?page=0&size=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "demandes"],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Lister toutes les demandes sans filtres"
+					}
+				},
+				{
+					"name": "Détails Demande",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/admin/details/DEMANDE_ID",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "details", "DEMANDE_ID"]
+						},
+						"description": "Obtenir les détails complets d'une demande (nécessite le rôle ADMIN)"
+					}
+				},
+				{
+					"name": "Mettre à jour Statut - Accepter",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"ACCEPTEE\",\n    \"motifRejet\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/demande/DEMANDE_ID/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "demande", "DEMANDE_ID", "status"]
+						},
+						"description": "Accepter une demande (nécessite le rôle ADMIN)"
+					}
+				},
+				{
+					"name": "Mettre à jour Statut - Rejeter",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"REJETE\",\n    \"motifRejet\": \"Motif de rejet détaillé ici\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/demande/DEMANDE_ID/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "demande", "DEMANDE_ID", "status"]
+						},
+						"description": "Rejeter une demande avec un motif (nécessite le rôle ADMIN)"
+					}
+				},
+				{
+					"name": "Mettre à jour Statut - Avis Favorable",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"AVIS_FAVORABLE\",\n    \"motifRejet\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/demande/DEMANDE_ID/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "demande", "DEMANDE_ID", "status"]
+						},
+						"description": "Mettre à jour le statut avec avis favorable (nécessite le rôle ADMIN)"
+					}
+				},
+				{
+					"name": "Mettre à jour Statut - Avis Défavorable",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"AVIS_DEFAVORABLE\",\n    \"motifRejet\": \"Raison de l'avis défavorable\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/demande/DEMANDE_ID/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "demande", "DEMANDE_ID", "status"]
+						},
+						"description": "Mettre à jour le statut avec avis défavorable (nécessite le rôle ADMIN)"
+					}
+				},
+				{
+					"name": "Mettre à jour Statut - En Cours",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"EN_COURS\",\n    \"motifRejet\": null\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/admin/demande/DEMANDE_ID/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["admin", "demande", "DEMANDE_ID", "status"]
+						},
+						"description": "Mettre une demande en cours de traitement (nécessite le rôle ADMIN)"
+					}
+				}
+			]
+		},
+		{
+			"name": "Statistics",
+			"item": [
+				{
+					"name": "Obtenir Statistiques",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/stats/getStats",
+							"host": ["{{baseUrl}}"],
+							"path": ["stats", "getStats"]
+						},
+						"description": "Obtenir les statistiques globales (nécessite le rôle ADMIN)"
+					}
+				}
+			]
+		}
+	]
+}

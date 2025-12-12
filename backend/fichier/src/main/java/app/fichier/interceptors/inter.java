@@ -31,20 +31,58 @@ public class inter extends OncePerRequestFilter{
         this.authUtilisateur = authUtilisateur;
     } 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request,@NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
+    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
             throws ServletException, IOException {
-               
-                String token = getTokenFromrequest(request);
-                if(StringUtils.hasText(token) && jwtUtils.validateToken(token)){
-                    Claims claims = jwtUtils.getClaimsFromToken(token);
-                    String username = claims.getSubject();
-                    UserDetails userDetails = authUtilisateur.loadUserByUsername(username);
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+        
+        // Ignorer les requêtes OPTIONS (CORS preflight)
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
+        try {
+            String token = getTokenFromrequest(request);
+            log.debug("Requête {}: Token présent: {}", request.getRequestURI(), token != null);
+            
+            if (StringUtils.hasText(token)) {
+                log.debug("Validation du token pour la requête: {}", request.getRequestURI());
+                
+                if (jwtUtils.validateToken(token)) {
+                    try {
+                        Claims claims = jwtUtils.getClaimsFromToken(token);
+                        String username = claims.getSubject();
+                        log.debug("Sujet extrait du token: {}", username);
+                        
+                        UserDetails userDetails = authUtilisateur.loadUserByUsername(username);
+                        log.debug("Utilisateur chargé: {}, Rôles: {}", username, userDetails.getAuthorities());
+                        
+                        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails, null, userDetails.getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        
+                        log.info("Authentification réussie pour l'utilisateur: {} sur {}", username, request.getRequestURI());
+                    } catch (IllegalStateException e) {
+                        log.warn("Impossible d'extraire les claims du token pour {}: {}", request.getRequestURI(), e.getMessage());
+                        SecurityContextHolder.clearContext();
+                    } catch (Exception e) {
+                        log.error("Erreur lors du chargement de l'utilisateur pour {}: {}", request.getRequestURI(), e.getMessage(), e);
+                        SecurityContextHolder.clearContext();
+                    }
+                } else {
+                    log.warn("Token invalide pour la requête: {}", request.getRequestURI());
+                    SecurityContextHolder.clearContext();
                 }
-                filterChain.doFilter(request, response);
+            } else {
+                log.debug("Aucun token trouvé dans la requête: {}", request.getRequestURI());
             }
+        } catch (Exception e) {
+            log.error("Erreur inattendue dans l'intercepteur JWT pour {}: {}", request.getRequestURI(), e.getMessage(), e);
+            SecurityContextHolder.clearContext();
+        }
+        
+        filterChain.doFilter(request, response);
+    }
     private String getTokenFromrequest(HttpServletRequest request) {
        String bearer = request.getHeader("Authorization");
        if(StringUtils.hasText(bearer) && bearer.startsWith("Bearer ")){

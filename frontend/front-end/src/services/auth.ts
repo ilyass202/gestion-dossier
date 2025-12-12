@@ -8,11 +8,8 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  type: string;
-  id: number;
-  username: string;
-  email: string;
-  roles: string[];
+  // Le backend renvoie uniquement le token JWT
+  // Les autres informations peuvent être extraites du token si nécessaire
 }
 
 // Fonction de connexion
