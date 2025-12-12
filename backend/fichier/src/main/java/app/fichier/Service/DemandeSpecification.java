@@ -11,7 +11,7 @@ public class DemandeSpecification {
 
     }
     public static Specification<Demande> byType(String type){
-       return (root, query, cb) -> cb.equal(root.get("type"), type);
+       return (root, query, cb) -> cb.equal(root.get("typeAutorisation"), type);
     }
     public static Specification<Demande> byCommune(String commune){
         return (root, query, cb) -> cb.equal(root.get("commune").get("nomCommune"),commune);

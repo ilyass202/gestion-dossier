@@ -42,26 +42,18 @@ public class inter extends OncePerRequestFilter{
         
         try {
             String token = getTokenFromrequest(request);
-            log.debug("Requête {}: Token présent: {}", request.getRequestURI(), token != null);
             
             if (StringUtils.hasText(token)) {
-                log.debug("Validation du token pour la requête: {}", request.getRequestURI());
                 
                 if (jwtUtils.validateToken(token)) {
                     try {
-                        Claims claims = jwtUtils.getClaimsFromToken(token);
-                        String username = claims.getSubject();
-                        log.debug("Sujet extrait du token: {}", username);
-                        
+                        String username = jwtUtils.getSubject(token);
                         UserDetails userDetails = authUtilisateur.loadUserByUsername(username);
-                        log.debug("Utilisateur chargé: {}, Rôles: {}", username, userDetails.getAuthorities());
-                        
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities());
+                            log.info("Rôles chargés pour {} : {}", username, userDetails.getAuthorities());
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authentication);
-                        
-                        log.info("Authentification réussie pour l'utilisateur: {} sur {}", username, request.getRequestURI());
                     } catch (IllegalStateException e) {
                         log.warn("Impossible d'extraire les claims du token pour {}: {}", request.getRequestURI(), e.getMessage());
                         SecurityContextHolder.clearContext();

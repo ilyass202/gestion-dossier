@@ -152,13 +152,5 @@ public class JwtUtils {
         }
     }
     
-    public Date getExpirationDate(String jwt){
-        try {
-            Claims claims = getClaimsFromToken(jwt);
-            return claims.getExpiration();
-        } catch (Exception e) {
-            log.error("Erreur lors de l'extraction de la date d'expiration du token JWT: {}", e.getMessage());
-            throw e;
-        }
-    }
+
 }

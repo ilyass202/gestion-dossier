@@ -18,8 +18,10 @@ import app.fichier.Entity.Utilisateur;
 import app.fichier.repositry.RoleRepo;
 import app.fichier.repositry.UtilisateurRepo;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 
 @Service
+@Transactional
 public class AuthUtilisateur implements UserDetailsService{
     @Autowired
     private UtilisateurRepo utilisateurRepo;
