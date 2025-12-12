@@ -103,13 +103,21 @@ export const listerDemandes = async (
     ...(filters.nomCommune && { nomCommune: filters.nomCommune }),
   });
 
+  // Récupérer le token depuis localStorage
   const token = localStorage.getItem('authToken');
-  const headers: Record<string, string> = {
+  
+  // Construire les headers
+  const headers: { [key: string]: string } = {
     'Content-Type': 'application/json',
   };
   
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  // Ajouter le token JWT si présent
+  if (token && token.trim() !== '') {
+    headers['Authorization'] = `Bearer ${token.trim()}`;
+    console.log('Token JWT ajouté aux headers');
+  } else {
+    console.error('ERREUR: Aucun token JWT trouvé dans localStorage!');
+    console.log('Clés localStorage:', Object.keys(localStorage));
   }
 
   const response = await fetch(`${API_BASE_URL}/admin/demandes?${params}`, {
@@ -123,12 +131,12 @@ export const listerDemandes = async (
 // 2. Obtenir les détails d'une demande
 export const getDetailsDemande = async (id: string): Promise<AdminDetailsDemande> => {
   const token = localStorage.getItem('authToken');
-  const headers: Record<string, string> = {
+  const headers: { [key: string]: string } = {
     'Content-Type': 'application/json',
   };
   
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (token && token.trim() !== '') {
+    headers['Authorization'] = `Bearer ${token.trim()}`;
   }
 
   const response = await fetch(`${API_BASE_URL}/admin/details/${id}`, {
@@ -151,12 +159,12 @@ export const updateStatusDemande = async (
   };
 
   const token = localStorage.getItem('authToken');
-  const headers: Record<string, string> = {
+  const headers: { [key: string]: string } = {
     'Content-Type': 'application/json',
   };
   
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (token && token.trim() !== '') {
+    headers['Authorization'] = `Bearer ${token.trim()}`;
   }
 
   const response = await fetch(`${API_BASE_URL}/admin/demande/${id}/status`, {
@@ -171,12 +179,12 @@ export const updateStatusDemande = async (
 // 4. Obtenir les statistiques
 export const getStats = async (): Promise<StatsResponse> => {
   const token = localStorage.getItem('authToken');
-  const headers: Record<string, string> = {
+  const headers: { [key: string]: string } = {
     'Content-Type': 'application/json',
   };
   
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (token && token.trim() !== '') {
+    headers['Authorization'] = `Bearer ${token.trim()}`;
   }
 
   const response = await fetch(`${API_BASE_URL}/stats/getStats`, {
