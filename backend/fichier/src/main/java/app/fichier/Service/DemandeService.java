@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,9 +26,11 @@ import app.fichier.Entity.Commune;
 import app.fichier.Entity.Demande;
 import app.fichier.Entity.Document;
 import app.fichier.Entity.Status;
+import app.fichier.Entity.Utilisateur;
 import app.fichier.repositry.CommuneRepo;
 import app.fichier.repositry.DemandeRepo;
 import app.fichier.repositry.DocumentRepo;
+import app.fichier.repositry.UtilisateurRepo;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +48,13 @@ public class DemandeService {
      private final DocumentImple documentService;
      private final DemandeSpecification specification;
      private final CommuneRepo communeRepo;
+     private final UtilisateurRepo utilisateurRepo;
 
      @Transactional
-     public DemandeReponse creerDemande(DemandeRequete requete){
-        Demande demande = new Demande();
+     public DemandeReponse creerDemande(DemandeRequete requete, Authentication auth){
+      if(!auth.isAuthenticated() && auth == null){ throw new RuntimeException("utilisateur doit etre authentifié");}
+      Demande demande = new Demande();
+      demande.setUtilisateur(utilisateurRepo.findByEmail(auth.getName()).get());
       demande.setId(genererIdDemande());
       demande.setCin(requete.cin());
       demande.setTypeAutorisation(requete.typeAutorisation());
@@ -78,6 +84,7 @@ public class DemandeService {
             );
         }
       }
+    
       return new DemandeReponse(
         demande.getStatus().toString(),
         demande.getId(), 
@@ -87,13 +94,15 @@ public class DemandeService {
       );
      }
 
+    
+
      private String genererIdDemande() {
        return "DEM" + UUID.randomUUID().toString().substring(0,8);
     }
 
 
-    public DemandeReponse trackDemnande(String id, String cin){
-      Demande demande = demandeRepo.findByIdAndCin(id, cin)
+    public DemandeReponse trackDemnande(String id, String cin, Utilisateur utilisateur){
+      Demande demande = demandeRepo.findByIdAndCinAndUtilisateur(id, cin, utilisateur).get();
         .orElseThrow(() -> new EntityNotFoundException("Demande introuvable"));
         List<DocumentResponse> documents = demande.getDocuments()
         .stream()
