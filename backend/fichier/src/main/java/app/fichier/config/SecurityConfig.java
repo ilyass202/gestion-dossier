@@ -57,8 +57,6 @@ public class SecurityConfig {
     @Bean 
     public CorsConfigurationSource corsConfiguration(){
         CorsConfiguration config = new CorsConfiguration();
-        // Autoriser les origines spécifiques (utiliser des patterns pour compatibilité avec credentials)
-        // Vite par défaut sur 5173, mais peut varier
         config.setAllowedOriginPatterns(List.of(
             "http://localhost:*",
             "http://127.0.0.1:*"

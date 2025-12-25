@@ -32,7 +32,7 @@ public class AuthenticationManagerService {
         );
         if(authentication.isAuthenticated()){
             SecurityContextHolder.getContext().setAuthentication(authentication);
-             jwtUtils.generateToken(authentication, 3600000L);
+            return jwtUtils.generateToken(authentication, 3600000L);
         }
         return "";
     }
@@ -42,7 +42,7 @@ public class AuthenticationManagerService {
         }
         else{
             Utilisateur utilisateur = new Utilisateur();
-            utilisateur.setEmaireturnl(requete.email());
+            utilisateur.setEmail(requete.email());
             utilisateur.setPassword(passwordEncoder.encode(requete.password()));
             utilisateur.setRoles(List.of(roleRepo.findByRole("ROLE_USER").get()));
             userRepo.save(utilisateur);

@@ -21,16 +21,18 @@ public class StatsService {
     public StatsResponse getStats() {
         Map<String, Long> parCommune = communeRepo.countDemandesByCommune()
             .stream()
+            .filter(arr -> arr[0] != null) // Filtrer les clés null
             .collect(Collectors.toMap(
                 arr -> (String) arr[0],
-                arr -> arr[1] == null ? 0L : (Long) arr[1]
+                arr -> arr[1] == null ? 0L : ((Number) arr[1]).longValue()
             ));
 
         Map<String, Long> parType = demandeRepo.countByTypeAutorisation()
             .stream()
+            .filter(arr -> arr[0] != null) // Filtrer les clés null
             .collect(Collectors.toMap(
                 arr -> (String) arr[0],
-                arr -> (Long) arr[1]
+                arr -> arr[1] == null ? 0L : ((Number) arr[1]).longValue()
             ));
 
         return new StatsResponse(

@@ -12,7 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import app.fichier.Service.AuthUtilisateur;
 import app.fichier.Utils.JwtUtils;
-import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

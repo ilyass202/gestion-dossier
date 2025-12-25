@@ -66,7 +66,6 @@ public class DemandeService {
       // Commune commune = communeRepo.calculateIntersection(point);
       // demande.setCommune(commune);
       
-      // Version temporaire pour les tests sans données géométriques
       try {
           Commune commune = communeRepo.calculateIntersection(point);
           demande.setCommune(commune);
