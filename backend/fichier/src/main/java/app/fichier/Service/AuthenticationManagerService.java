@@ -22,22 +22,17 @@ import lombok.AllArgsConstructor;
 public class AuthenticationManagerService {
 
     private final RoleRepo roleRepo;
-
-    private AuthenticationManager authenticationManager;
-    private JwtUtils jwtUtils;
-    private UtilisateurRepo userRepo;
-    private PasswordEncoder passwordEncoder;
-
-    AuthenticationManagerService(RoleRepo roleRepo) {
-        this.roleRepo = roleRepo;
-    }
+    private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
+    private final UtilisateurRepo userRepo;
+    private final PasswordEncoder passwordEncoder;
     public String generateTokenAfterAutentication(LoginRequete requete){
         Authentication authentication = authenticationManager.authenticate(new 
         UsernamePasswordAuthenticationToken(requete.email(), requete.password()) 
         );
         if(authentication.isAuthenticated()){
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            return jwtUtils.generateToken(authentication, 3600000L);
+             jwtUtils.generateToken(authentication, 3600000L);
         }
         return "";
     }
@@ -47,9 +42,9 @@ public class AuthenticationManagerService {
         }
         else{
             Utilisateur utilisateur = new Utilisateur();
-            utilisateur.setEmail(requete.email());
+            utilisateur.setEmaireturnl(requete.email());
             utilisateur.setPassword(passwordEncoder.encode(requete.password()));
-            utilisateur.setRoles(List.of(roleRepo. findByRole("ROLE_USER").get()));
+            utilisateur.setRoles(List.of(roleRepo.findByRole("ROLE_USER").get()));
             userRepo.save(utilisateur);
             return "utilisateur enregistre";
         }

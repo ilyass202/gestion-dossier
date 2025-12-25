@@ -29,11 +29,8 @@ public class JwtUtils {
         try {
             SecretKey key = createSecretKey(getJwtSecret());
             Date now = new Date();
-            // Si exp est 0 ou négatif, utiliser une expiration par défaut de 24 heures
-            long expirationTime = (exp > 0) ? exp : 24 * 60 * 60 * 1000L; // 24 heures par défaut
+            long expirationTime = (exp > 0) ? exp : 24 * 60 * 60 * 1000L; 
             Date expiration = new Date(now.getTime() + expirationTime);
-            
-            // Extraire les noms des rôles depuis les GrantedAuthority
             List<String> roles = auth.getAuthorities().stream()
                 .map(grantedAuthority -> grantedAuthority.getAuthority())
                 .collect(Collectors.toList());

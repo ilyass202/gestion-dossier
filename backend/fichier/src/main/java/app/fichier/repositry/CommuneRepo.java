@@ -5,7 +5,6 @@ import java.util.List;
 import org.locationtech.jts.geom.Point;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import app.fichier.Entity.Commune;
@@ -21,9 +20,17 @@ public interface CommuneRepo extends JpaRepository<Commune, Long>{
         """, nativeQuery = true)
     List<Object[]> countDemandesByCommune();
     
-    @Query(value = """
-            select c.* From communes c  where ST_Intersects(c.geom, :point) order by ST_Area(ST_Intersect(c.geom, :point)) desc limit 1
-            """, nativeQuery = true)
-    Commune calculateIntersection(@Param("point") Point point);
+    // TODO: Réactiver cette requête une fois la colonne geom ajoutée à la table communes
+    // @Query(value = """
+    //         select c.* From communes c  where ST_Intersects(c.geom, :point) order by ST_Area(ST_Intersect(c.geom, :point)) desc limit 1
+    //         """, nativeQuery = true)
+    // Commune calculateIntersection(@Param("point") Point point);
+    
+    // Version temporaire pour les tests sans données géométriques
+    default Commune calculateIntersection(Point point) {
+        // Retourne null temporairement - la commune sera optionnelle dans DemandeService
+        // TODO: Réactiver la requête SQL native une fois la colonne geom ajoutée
+        return null;
+    }
 
 }

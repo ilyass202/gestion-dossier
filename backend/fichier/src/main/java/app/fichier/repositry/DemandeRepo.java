@@ -9,9 +9,10 @@ import org.springframework.data.jpa.repository.Query;
 
 import app.fichier.Entity.Demande;
 import app.fichier.Entity.Status;
+import app.fichier.Entity.Utilisateur;
 
 public interface DemandeRepo extends JpaRepository<Demande, String>, JpaSpecificationExecutor<Demande>{
-    Optional<Demande> findByIdAndCin(String id, String cin);
+    Optional<Demande> findByIdAndCinAndUtilisateur(String id, String cin, Utilisateur utilisateur);
 
     @Query("SELECT d.typeAutorisation, COUNT(d) FROM Demande d GROUP BY d.typeAutorisation")
     List<Object[]> countByTypeAutorisation();
